@@ -1,3 +1,22 @@
 body {
-    background-color: lightblue
+    background-image: linear-gradient(179.08deg, #5774BF 8.05%, rgba(87, 116, 191, 0) 106.8%);
+    font-family: 'Inter';
+    background-repeat: none;
+    background-attachment: fixed;
+}
+
+.homepage h1 {
+    position: absolute;
+    bottom: 200px;
+    text-align: center;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 58px;
+}
+
+.homepage input[type="text"] {
+    border-radius: 20px;
+    width: 400px;
+    height: 75px;
 }
