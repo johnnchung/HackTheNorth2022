@@ -110,7 +110,7 @@ func (d *Db) InsertWords(audioWord YtWord, url string) error {
 	return nil
 }
 
-func (d *Db) GetWords(word string) ([]*DbResp, error) {
+func (d *Db) GetLinkFromWord(word string) ([]*DbResp, error) {
 	var result []*DbResp
 
 	rows, err := d.db.Query(
@@ -118,6 +118,10 @@ func (d *Db) GetWords(word string) ([]*DbResp, error) {
 		word,
 	)
 	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, fmt.Errorf("No rows exist for the word %s", word)
+		}
 		return nil, err
 	}
 
@@ -132,17 +136,6 @@ func (d *Db) GetWords(word string) ([]*DbResp, error) {
 	}
 	return result, nil
 }
-
-// word -> list of links
-
-// func wordToLinks(word string) []string {
-
-// 	return
-// }
-
-// url -> download videos
-
-//
 
 // **********************
 //	API Handlers
