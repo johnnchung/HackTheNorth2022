@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/johnnchung/HackTheNorth2022/auth"
 	"github.com/johnnchung/HackTheNorth2022/helpers"
 	models "github.com/johnnchung/HackTheNorth2022/models"
 	"github.com/urfave/negroni"
@@ -27,13 +28,24 @@ func (r *Repo) HandlerInit() error {
 	}
 
 	// add routes
-	r.muxClient.HandleFunc("/{term}", r.addDataFromCategoryHandler)
+	apiRoutes := mux.NewRouter()
+	apiRoutes.HandleFunc("/api/internal/{term}", r.addDataFromCategoryHandler)
+
+	// add middlewares
+	authMiddleware := negroni.HandlerFunc(auth.ReqAPIKey)
+
+	// combine
+	r.muxClient.PathPrefix("/api/internal").Handler(negroni.New(
+		authMiddleware,
+		negroni.Wrap(apiRoutes),
+	))
 
 	return nil
 }
 
 func (r *Repo) Run() error {
 	n := negroni.Classic() // Includes some default middlewares
+
 	n.UseHandler(r.muxClient)
 
 	n.Run(":8080")
