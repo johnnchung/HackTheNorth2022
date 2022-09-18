@@ -156,7 +156,7 @@ func (d *Db) UploadToCloudinary(filename string) (string, error) {
 func (d *Db) GetTranscribedYtVid(ytID string) (*YtResp, error) {
 	// 1.convert to audio file and download
 	ytUrl := fmt.Sprintf("https://www.youtube.com/watch?v=%s", ytID)
-	cmd := exec.Command("youtube-dl", "-x", "--audio-format", "mp3", ytUrl)
+	cmd := exec.Command("yt-dlp", "-x", "--audio-format", "mp3", ytUrl)
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}

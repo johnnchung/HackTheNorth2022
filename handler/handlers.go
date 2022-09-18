@@ -162,7 +162,7 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 
 		// download video
 		outFileName := fmt.Sprintf("temp/%d.mp4", i)
-		cmd := exec.Command("youtube-dl", "-o", outFileName, "-f", "worst", link.Url)
+		cmd := exec.Command("yt-dlp", "-S", "res,ext:mp4:m4a", "--recode", "mp4", "-o", outFileName, link.Url)
 
 		if err := cmd.Run(); err != nil {
 			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
