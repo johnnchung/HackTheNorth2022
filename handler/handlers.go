@@ -8,17 +8,18 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/johnnchung/HackTheNorth2022/auth"
 	"github.com/johnnchung/HackTheNorth2022/helpers"
 	models "github.com/johnnchung/HackTheNorth2022/models"
-	"github.com/mowshon/moviego"
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"github.com/urfave/negroni"
 )
 
 var (
-	YTDL_TIME_FORMAT = "15:04:05"
+	YTDL_TIME_FORMAT = "15:04:05.00"
 )
 
 // ********************
@@ -124,7 +125,7 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var ytLink []*models.DbResp
+	var ytLink []models.DbResp
 
 	for _, word := range strings.Fields(reqBody.Text) {
 		// get rid of punctuation
@@ -138,62 +139,82 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 
 		// pick one randomly
 		linksLen := len(links)
-		fmt.Println()
 		choice := rand.Intn(linksLen)
+		fmt.Println(choice, links[choice], links)
 
 		// append to ytLink
 		ytLink = append(ytLink, links[choice])
 
 	}
 
-	var videoList []moviego.Video
+	var videoList []string
+	fmt.Println("Got all ytLinks ready: ", ytLink)
 
 	for i, link := range ytLink {
 
-		// convert milliseconds to time Format
-		start_time := link.Start / 1000
-		end_time := link.End / 1000
+		fmt.Println("Began processing link: ", link)
 
-		// download video (cut already)
+		// convert milliseconds to time Format
+		var t time.Time
+		start_time := t.Add(time.Duration(link.Start) * time.Millisecond).Format(YTDL_TIME_FORMAT)
+		t = time.Time{}
+		end_time := t.Add(time.Duration(link.End-link.Start) * time.Millisecond).Format(YTDL_TIME_FORMAT)
+
+		// download video
 		outFileName := fmt.Sprintf("temp/%d.mp4", i)
-		cmd := exec.Command("youtube-dl", "-o", outFileName, link.Url)
+		cmd := exec.Command("yt-dlp", "-S", "res,ext:mp4:m4a", "--recode", "mp4", "-o", outFileName, link.Url)
 
 		if err := cmd.Run(); err != nil {
 			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		vid, err := moviego.Load(outFileName)
-		vid.SubClip(float64(start_time), float64(end_time))
-		if err != nil {
+		fmt.Println("Editing file....")
+		// cut file``
+		cutFileName := fmt.Sprintf("temp/cut_%d.mp4", i)
+		if err := ffmpeg.Input(outFileName, ffmpeg.KwArgs{"ss": start_time}).
+			Output(cutFileName, ffmpeg.KwArgs{"t": end_time}).
+			OverWriteOutput().Run(); err != nil {
 			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		// append to list
-		videoList = append(videoList, vid)
+		videoList = append(videoList, cutFileName)
 	}
 
-	finalVideo, err := moviego.Concat(videoList)
+	fmt.Println("Stitching all videos...")
+
+	f, err := os.Create("list.txt")
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	defer f.Close()
+	for _, val := range videoList {
+		_, err := f.WriteString(fmt.Sprintf("file '%s'\n", val))
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
 
-	if err := finalVideo.Output("res.mp4").Run(); err != nil {
+	cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", "list.txt", "-c", "copy", "final.mp4")
+	if err := cmd.Run(); err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// push it to cloudshiney
-	url, err := r.db.UploadToCloudinary("res.mp4")
+	url, err := r.db.UploadToCloudinary("final.mp4")
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	os.RemoveAll("temp")
-	os.Remove("res.mp4")
+	os.Remove("final.mp4")
+	os.Remove("list.txt")
 
 	// return link
 	helpers.RespondWithJSON(w, http.StatusOK, map[string]interface{}{"video_url": url})
