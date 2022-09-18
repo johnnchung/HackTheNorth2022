@@ -111,8 +111,7 @@ func (d *Db) InsertWords(audioWord YtWord, url string) error {
 	return nil
 }
 
-func (d *Db) GetLinkFromWord(word string) ([]*DbResp, error) {
-	var result []*DbResp
+func (d *Db) GetLinkFromWord(word string) ([]DbResp, error) {
 
 	rows, err := d.db.Query(
 		`SELECT * FROM ytdata WHERE word=$1;`,
@@ -126,12 +125,15 @@ func (d *Db) GetLinkFromWord(word string) ([]*DbResp, error) {
 		return nil, err
 	}
 
-	tmpRow := &DbResp{}
+	var result []DbResp
+	defer rows.Close()
 	for rows.Next() {
+		tmpRow := DbResp{}
 		err := rows.Scan(&tmpRow.ID, &tmpRow.Word, &tmpRow.Url, &tmpRow.Start, &tmpRow.End)
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println(tmpRow)
 
 		result = append(result, tmpRow)
 	}
