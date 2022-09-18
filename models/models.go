@@ -50,9 +50,10 @@ type YtWord struct {
 }
 
 type DbResp struct {
+	ID    string `json:"id,omitempty"`
 	End   int64  `json:"end"`
 	Start int64  `json:"start"`
-	Text  string `json:"text"`
+	Word  string `json:"word"`
 	Url   string `json:"url"`
 }
 
@@ -114,7 +115,7 @@ func (d *Db) GetLinkFromWord(word string) ([]*DbResp, error) {
 	var result []*DbResp
 
 	rows, err := d.db.Query(
-		`SELECT text FROM ytdata WHERE text=$1;`,
+		`SELECT * FROM ytdata WHERE word=$1;`,
 		word,
 	)
 	if err != nil {
@@ -127,7 +128,7 @@ func (d *Db) GetLinkFromWord(word string) ([]*DbResp, error) {
 
 	tmpRow := &DbResp{}
 	for rows.Next() {
-		err := rows.Scan(tmpRow)
+		err := rows.Scan(&tmpRow.ID, &tmpRow.Word, &tmpRow.Url, &tmpRow.Start, &tmpRow.End)
 		if err != nil {
 			return nil, err
 		}
