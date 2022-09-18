@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
+	"math/rand"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/johnnchung/HackTheNorth2022/auth"
@@ -10,9 +13,17 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// ********************
+// Setup stuff
+// ********************
+
 type Repo struct {
 	muxClient *mux.Router
 	db        *models.Db
+}
+
+type textReq struct {
+	Text string `json:"text"`
 }
 
 // ********************
@@ -79,6 +90,7 @@ func (r *Repo) addDataFromCategoryHandler(w http.ResponseWriter, req *http.Reque
 
 		// // add words as rows to Cockroach
 		for _, word := range ytRsp.Words {
+			word.Text = helpers.CleanPunctuation([]byte(word.Text))
 			if err := r.db.InsertWords(word, ytRsp.URL); err != nil {
 				helpers.RespondWithError(w, http.StatusBadGateway, err.Error())
 				return
@@ -89,5 +101,50 @@ func (r *Repo) addDataFromCategoryHandler(w http.ResponseWriter, req *http.Reque
 
 	helpers.RespondWithJSON(w, http.StatusAccepted, nil)
 	return
+
+}
+
+func (r *Repo) getLinksFromText(w http.ResponseWriter, req *http.Request) {
+
+	// get text
+	var reqBody textReq
+	if err := json.NewDecoder(req.Body).Decode(&reqBody); err != nil {
+		helpers.RespondWithError(w, http.StatusBadRequest, "")
+		return
+	}
+
+	var ytLink []*models.DbResp
+
+	for _, word := range strings.Fields(reqBody.Text) {
+		// get rid of punctuation
+		cleanWord := helpers.CleanPunctuation([]byte(word))
+		// lookup in DB => get results
+		links, err := r.db.GetLinkFromWord(cleanWord)
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// pick one randomly
+		linksLen := len(links)
+		choice := rand.Intn(linksLen)
+
+		// append to ytLink
+		ytLink = append(ytLink, links[choice])
+
+	}
+
+	// for _, link := range ytLink {
+	// 	// download video
+	// 	// convert milliseconds to seconds
+	// 	// cut video
+	// 	// add to folder
+	// }
+
+	// combine video
+
+	// push it to cloudshiney
+
+	// return link
 
 }
