@@ -1,18 +1,50 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+    <link href="bootstrap.css" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
+    
+    <!-- fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nabla&family=Orelega+One&family=Questrial&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orelega+One&family=Questrial&display=swap" rel="stylesheet">
+
 </head>
+
+
+
 <body>
 
-<div class="homepage">
-    <h1>Enter your phrase!</h1>
-    <form name="sentenceForm">
-        <input type="text" id="sentence" name="sentence" placeholder="Input phrase here(30 words maximum)"><br>
-        <input type="submit">
-    </form>
-</div>
+    <div class="homepage">
+        <img src="/Users/Jenny/Documents/coding/HackTheNorth2022-1/images/snippit-logo.png" alt="snippit logo"
+            class="m-3" style="width:9%">
+        
+        <!-- splash 
+        <div class="p5 text-light my-5">
+            <h1  class="text-center">Turn your phrase into a video</h1>
+            <h2 style="margin-left: 200px;">Input your phrase</h2>
+            <h2 class="text-end" style="margin-right: 200px;">Press generate</h2>
+            <button type="button" class="btn btn-primary" class="text-right" style="margin-right: 200px;">generate!</button>
+            <h2 style="margin-left: 200px;">Enjoy your Snippit</h2>
+            <h2 class="text-end" style="margin-right: 200px;">Share it</h2>
+        </div> -->
+        
+        <div class="p5 text-center text-light">
+            <img src="/Users/Jenny/Documents/coding/HackTheNorth2022-1/images/trump.png" alt="trump stick figure" style="width:9%">
+            <img src="/Users/Jenny/Documents/coding/HackTheNorth2022-1/images/ew.png" alt="trump stick figure" style="width:9%">
 
-<script src="main.js"></script>
+
+            <h1 class="m-5" style="font-size: 80px; font-family: 'Nabla', cursive;">enter ur phrase</h1>
+            <textarea class="form-control my-5" id="exampleFormControlTextarea1" rows="5" style="width:500px; margin: auto"></textarea>
+            <!-- <form name="sentenceForm">
+                <input class="m-3" type="text" id="sentence" name="sentence" placeholder="Input phrase here(30 words maximum)"><br> -->                
+                <button type="button" class="btn btn-primary">generate!</button>
+            </form>
+        </div>
+    </div>
+<img src="/images/arrows.jpeg" alt="">
+
+    <script src="main.js"></script>
 </body>
+
 </html>
