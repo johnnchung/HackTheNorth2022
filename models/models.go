@@ -233,8 +233,9 @@ func (d *Db) GetSearchFromYoutube(word string) ([]string, error) {
 
 	// get list
 	call := d.ytClient.Search.List([]string{"id"}).
-		Q(query).
 		VideoDuration("medium").
+		Type("video").
+		Q(query).
 		MaxResults(*maxResults)
 
 	// execute req
@@ -246,12 +247,7 @@ func (d *Db) GetSearchFromYoutube(word string) ([]string, error) {
 	// extract data
 	respArr := []string{}
 	for _, item := range response.Items {
-		switch item.Id.Kind {
-		case "youtube#video":
-			respArr = append(respArr, item.Id.VideoId)
-		default:
-			continue
-		}
+		respArr = append(respArr, item.Id.VideoId)
 	}
 
 	return respArr, nil
