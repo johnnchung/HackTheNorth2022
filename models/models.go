@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	maxResults = flag.Int64("max-results", 25, "Max YouTube results")
+	maxResults = flag.Int64("max-results", 8, "Max YouTube results")
 )
 
 // *********************
