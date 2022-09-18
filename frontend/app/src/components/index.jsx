@@ -1,7 +1,7 @@
 import { AwesomeButton } from "react-awesome-button";
 import "react-awesome-button/dist/styles.css";
-import confetti from "../../assets/confetti.gif";
-import "./Text.css";
+import confetti from "../assets/confetti.gif";
+import "./Text.css"
 
 function Button() {
   return (

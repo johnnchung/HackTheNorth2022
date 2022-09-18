@@ -1,0 +1,41 @@
+.cm img {
+    height: 12vw;
+    position: absolute;
+    top: 25%;
+    left: 22.5%;
+}
+
+.dt img {
+    height: 12vw;
+    position: absolute;
+    top: 25%;
+    right: 22.5%
+}
+
+.bs img {
+    height: 12vw;
+    position: absolute;
+    top: 17.5%;
+    right: 33.5%
+}
+
+.pg img {
+    height: 12vw;
+    position: absolute;
+    top: 20%;
+    left: 33.5%
+}
+
+.gf img {
+    height: 14vw;
+    position: absolute;
+    top: 16%;
+    left: 44%;
+}
+
+.logo img {
+    position: absolute;
+    height: 4vw;
+    top: 8px;
+    left: 8px;
+}
