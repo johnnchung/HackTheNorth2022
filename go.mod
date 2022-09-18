@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.7
+	github.com/rs/cors v1.8.2
 	github.com/u2takey/ffmpeg-go v0.4.1
 	github.com/urfave/negroni v1.0.0
 	google.golang.org/api v0.96.0

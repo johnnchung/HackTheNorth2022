@@ -14,6 +14,7 @@ import (
 	"github.com/johnnchung/HackTheNorth2022/auth"
 	"github.com/johnnchung/HackTheNorth2022/helpers"
 	models "github.com/johnnchung/HackTheNorth2022/models"
+	"github.com/rs/cors"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"github.com/urfave/negroni"
 )
@@ -71,7 +72,14 @@ func (r *Repo) Run() error {
 
 	n.UseHandler(r.muxClient)
 
-	n.Run(":8080")
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},           // All origins
+		AllowedMethods: []string{"GET", "POST"}, // Allowing only get, just an example
+	})
+
+	if err := http.ListenAndServe(":8080", c.Handler(n)); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -163,6 +171,7 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 		// download video
 		outFileName := fmt.Sprintf("temp/%d.mp4", i)
 		cmd := exec.Command("yt-dlp", "-S", "res,ext:mp4:m4a", "--recode", "mp4", "-o", outFileName, link.Url)
+		fmt.Println(cmd)
 
 		if err := cmd.Run(); err != nil {
 			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
