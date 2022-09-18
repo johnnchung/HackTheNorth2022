@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
+	"os/exec"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -134,12 +135,20 @@ func (r *Repo) getLinksFromText(w http.ResponseWriter, req *http.Request) {
 
 	}
 
-	// for _, link := range ytLink {
-	// 	// download video
-	// 	// convert milliseconds to seconds
-	// 	// cut video
-	// 	// add to folder
-	// }
+	for _, link := range ytLink {
+		// download video
+		cmd := exec.Command("youtube-dl", "--postprocessor-args", "\"-ss", "", "-t", "\"", link.Url)
+
+		// convert milliseconds to seconds
+		if err := cmd.Run(); err != nil {
+			helpers.RespondWithError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// cut video
+
+		// add to folder
+	}
 
 	// combine video
 
