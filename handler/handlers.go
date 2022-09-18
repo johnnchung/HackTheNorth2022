@@ -50,7 +50,7 @@ func (r *Repo) HandlerInit() error {
 	apiRoutes := mux.NewRouter()
 	apiRoutes.HandleFunc("/api/internal/{term}", r.addDataFromCategoryHandler)
 
-	// Core endpoint 
+	// Core endpoint
 	r.muxClient.HandleFunc("/api/v1/process", r.getVideoFromText)
 
 	// add middlewares
@@ -155,7 +155,7 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 
 		// download video (cut already)
 		outFileName := fmt.Sprintf("temp/%d.mp4", i)
-		cmd := exec.Command("youtube-dl", "-o", outFileName, "--postprocessor-args", "\"-ss", start_time,
+		cmd := exec.Command("youtube-dl", "-o", outFileName, "--postprocessor-args \"-ss", start_time,
 			"-to", fmt.Sprintf("%s\"", end_time), link.Url)
 
 		if err := cmd.Run(); err != nil {
