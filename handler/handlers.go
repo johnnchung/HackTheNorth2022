@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -11,7 +13,12 @@ import (
 	"github.com/johnnchung/HackTheNorth2022/auth"
 	"github.com/johnnchung/HackTheNorth2022/helpers"
 	models "github.com/johnnchung/HackTheNorth2022/models"
+	"github.com/mowshon/moviego"
 	"github.com/urfave/negroni"
+)
+
+var (
+	YTDL_TIME_FORMAT = "15:04:05"
 )
 
 // ********************
@@ -42,6 +49,9 @@ func (r *Repo) HandlerInit() error {
 	// add routes
 	apiRoutes := mux.NewRouter()
 	apiRoutes.HandleFunc("/api/internal/{term}", r.addDataFromCategoryHandler)
+
+	// Core endpoint 
+	r.muxClient.HandleFunc("/api/v1/process", r.getVideoFromText)
 
 	// add middlewares
 	authMiddleware := negroni.HandlerFunc(auth.ReqAPIKey)
@@ -105,7 +115,7 @@ func (r *Repo) addDataFromCategoryHandler(w http.ResponseWriter, req *http.Reque
 
 }
 
-func (r *Repo) getLinksFromText(w http.ResponseWriter, req *http.Request) {
+func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 
 	// get text
 	var reqBody textReq
@@ -135,25 +145,55 @@ func (r *Repo) getLinksFromText(w http.ResponseWriter, req *http.Request) {
 
 	}
 
-	for _, link := range ytLink {
-		// download video
-		cmd := exec.Command("youtube-dl", "--postprocessor-args", "\"-ss", "", "-t", "\"", link.Url)
+	var videoList []moviego.Video
 
-		// convert milliseconds to seconds
+	for i, link := range ytLink {
+
+		// convert milliseconds to time Format
+		start_time := helpers.ParseMilliTimestamp(link.Start).Format(YTDL_TIME_FORMAT)
+		end_time := helpers.ParseMilliTimestamp(link.Start).Format(YTDL_TIME_FORMAT)
+
+		// download video (cut already)
+		outFileName := fmt.Sprintf("temp/%d.mp4", i)
+		cmd := exec.Command("youtube-dl", "-o", outFileName, "--postprocessor-args", "\"-ss", start_time,
+			"-to", fmt.Sprintf("%s\"", end_time), link.Url)
+
 		if err := cmd.Run(); err != nil {
-			helpers.RespondWithError(w, http.StatusBadRequest, err.Error())
+			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		// cut video
+		vid, err := moviego.Load(outFileName)
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 
-		// add to folder
+		// append to list
+		videoList = append(videoList, vid)
 	}
 
-	// combine video
+	finalVideo, err := moviego.Concat(videoList)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
+	if err := finalVideo.Output("res.mp4").Run(); err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	// push it to cloudshiney
+	url, err := r.db.UploadToCloudinary("res.mp4")
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	os.RemoveAll("temp")
+	os.Remove("res.mp4")
 
 	// return link
+	helpers.RespondWithJSON(w, http.StatusOK, map[string]interface{}{"video_url": url})
 
 }
