@@ -137,6 +137,15 @@ func (d *Db) GetLinkFromWord(word string) ([]*DbResp, error) {
 	return result, nil
 }
 
+func (d *Db) UploadToCloudinary(filename string) (string, error) {
+	resp, err := d.cldClient.Upload.Upload(context.Background(), filename, uploader.UploadParams{})
+	if err != nil {
+		return "", err
+	}
+
+	return resp.URL, nil
+}
+
 // **********************
 //	API Handlers
 // **********************
