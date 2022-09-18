@@ -138,6 +138,7 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 
 		// pick one randomly
 		linksLen := len(links)
+		fmt.Println()
 		choice := rand.Intn(linksLen)
 
 		// append to ytLink
@@ -150,13 +151,12 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 	for i, link := range ytLink {
 
 		// convert milliseconds to time Format
-		start_time := helpers.ParseMilliTimestamp(link.Start).Format(YTDL_TIME_FORMAT)
-		end_time := helpers.ParseMilliTimestamp(link.Start).Format(YTDL_TIME_FORMAT)
+		start_time := link.Start / 1000
+		end_time := link.End / 1000
 
 		// download video (cut already)
 		outFileName := fmt.Sprintf("temp/%d.mp4", i)
-		cmd := exec.Command("youtube-dl", "-o", outFileName, "--postprocessor-args \"-ss", start_time,
-			"-to", fmt.Sprintf("%s\"", end_time), link.Url)
+		cmd := exec.Command("youtube-dl", "-o", outFileName, link.Url)
 
 		if err := cmd.Run(); err != nil {
 			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -164,6 +164,7 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 		}
 
 		vid, err := moviego.Load(outFileName)
+		vid.SubClip(float64(start_time), float64(end_time))
 		if err != nil {
 			helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -183,6 +184,7 @@ func (r *Repo) getVideoFromText(w http.ResponseWriter, req *http.Request) {
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	// push it to cloudshiney
 	url, err := r.db.UploadToCloudinary("res.mp4")
 	if err != nil {

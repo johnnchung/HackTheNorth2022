@@ -1,0 +1,28 @@
+body {
+  background-image: linear-gradient(
+    179.08deg,
+    #5774bf 8.05%,
+    rgba(87, 116, 191, 0) 106.8%
+  );
+  background-repeat: none;
+  background-attachment: fixed;
+  font-family: "Nabla", cursive;
+}
+
+.App {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.generate-button img {
+  width: 3vw;
+}
+.generate-button img:last-child {
+  transform: scaleX(-1);
+}
+
+.generate-button {
+  font-family: "Arial" !important;
+}
