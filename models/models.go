@@ -232,8 +232,9 @@ func (d *Db) GetSearchFromYoutube(word string) ([]string, error) {
 	query := word
 
 	// get list
-	call := d.ytClient.Search.List([]string{"id,snippet"}).
+	call := d.ytClient.Search.List([]string{"id"}).
 		Q(query).
+		VideoDuration("medium").
 		MaxResults(*maxResults)
 
 	// execute req
